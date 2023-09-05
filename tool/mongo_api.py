@@ -10,6 +10,7 @@ import logging as log
 import urllib.parse
 from typing import List, Optional, Any
 
+from bson.objectid import ObjectId  # 导入 ObjectId 类
 from pymongo import MongoClient
 
 log.basicConfig(level=log.INFO, format='%(asctime)s - %(levelname)s: -%(filename)s[L:%(lineno)d] %(message)s')
@@ -77,27 +78,27 @@ class MongoApi(object):
         else:
             return var.find_one(filter=filte)
 
-    def find_all(self, c: str, filteit=None, sort_keys=None):
+    def find_all(self, c: str, query: dict = None, sort_keys: dict = None):
+        query = query if query else {}
+        sort_keys = sort_keys if sort_keys else [('_id', -1), ]
+        print(query)
+        print(sort_keys)
         var = self.database[c]
         if var is None:
             return None
-        if not sort_keys:
-            return var.find(filteit)
-        else:
-            return var.find(filteit).sort(sort_keys)
+        return var.find(query).sort(sort_keys)
 
-    def update_one(self, coll, query: dict, data: dict):
-        # 查询是否存在name="A"的文档
-        # query = {"name": "A"}
+    def insert_or_update(self, coll, query: dict, data: dict):
         existing_document = self.database[coll].find_one(query)
-
         if existing_document:
-            # 如果文档存在，更新数据
             new_data = {"$set": data}
-            self.database[coll].update_one(query, new_data)
-            print("文档已更新")
+            _ = self.database[coll].update_one(query, new_data)
+            return str(existing_document.get('_id'))
         else:
-            # 如果文档不存在，插入新数据
-            self.database[coll].insert_one(data)
-            print("新文档已插入")
+            result = self.database[coll].insert_one(data)
+            return str(result.inserted_id)
         pass
+
+    def delete(self, coll, _id):
+        result = self.database[coll].delete_one(filter={'_id': ObjectId(_id)})
+        return result.deleted_count
