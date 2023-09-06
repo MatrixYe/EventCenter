@@ -101,8 +101,18 @@ def query_data(contract: str, start: int, end: int, senders: str = ''):
         'contract': contract,
         'start': start,
         'end': end,
-        'senders': senders.replace(' ', '').split(',') if senders else None
-
+        'senders': senders.replace(' ', '').split(',') if senders else None,
+        'events': [
+            {
+                'block_number': 666777888,
+                'block_timestamp': 9999999999,
+                'tx_hash': '0xabababababababababababababababababababababababababab',
+                'topic0': '0xccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+                'from': '0x_address_from',
+                'to': '0x_address_to',
+                'value': 0,
+            }
+        ]
     }
     return success(result)
     pass
